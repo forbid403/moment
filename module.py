@@ -1,7 +1,6 @@
 import datetime
 
-def cutDate():
-    date_string = "(5/21 21:04)"
+def cutDate(date_string):
     temp00 = date_string.replace("(", "")
     temp0 = temp00.replace(")", "")
     temp1 = temp0.split('/')
