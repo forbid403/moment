@@ -1,4 +1,5 @@
 import datetime
+import pymongo
 
 def cutDate(date_string):
     temp00 = date_string.replace("(", "")
@@ -16,4 +17,13 @@ def cutDate(date_string):
     minute = int(temp5[1])
 
     return datetime.datetime(2019, month, day, hour, minute)
+
+def mongoDBConnect():
+    port = 27017;
+    conn = pymongo.MongoClient('168.131.30.129', port)
+    momentDB = conn.get_database("moment")
+    print("moment db loaded : ", momentDB)
+    return momentDB
+
+
 

@@ -1,15 +1,10 @@
 import requests as rq
-import pymongo
 from bs4 import BeautifulSoup
 import module
 import unicodedata
 
 ##mongo db connect
-port = 27017;
-conn = pymongo.MongoClient('168.131.30.129', port)
-momentDB = conn.get_database("moment")
-print("moment db loaded : ", momentDB)
-
+momentDB = module.mongoDBConnect()
 japanCollection = momentDB.get_collection("Japan")
 print("japan collection loaded : ", japanCollection)
 
@@ -39,7 +34,6 @@ for category_ul in soup.find_all("ul", class_="List"):
         article_subject.append(normalized_subject)
 
 #DB insert
-
 for i in range(len(article_date)):
     post_jpn = {
         "writer": "asahi",
@@ -53,4 +47,4 @@ print(article_data)
 
 result = japanCollection.insert_many(article_data)
 # print(result.inserted_ids)
-print("db insert complete!")
+print("asahi db insert complete!")
