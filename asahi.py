@@ -19,6 +19,8 @@ asahi_url = 'https://www.asahi.com/news/?iref=comtop_gnavi'
 res = rq.get(asahi_url)
 soup = BeautifulSoup(res.content, 'html.parser')
 
+
+#날짜 추출
 for tag in soup.select("a.SW"):
     for list in tag.select("span.Time"):
         print(list.text)
@@ -26,9 +28,11 @@ for tag in soup.select("a.SW"):
 for temp in soup.select("a.SW > span"):
     temp.decompose()
 
-news = soup.select("a.SW > span")
-for new in news:
-    print(new.text.strip())
+#기사 제목 추출
+for category_ul in soup.find_all("ul", class_="List"):
+    for link in soup.find_all("a", class_="SW"):
+        print(link.text)
+
 
 #날짜랑 기사 제목 따로 DB 저장하기
 
