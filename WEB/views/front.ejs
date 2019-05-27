@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!--bootstrap CDN-->
+    <link rel="import" href="../cdn/cdn.html">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Moment</title>
+
+    <!-- main bootstrap core CSS -->
+    <link href="main/bootstrap.min.css" rel="stylesheet">
+    <script src="./obb.js"></script>
+    <script src="main/jquery.min.js"></script>
+    <script src="main/bootstrap.bundle.min.js"></script>
+    <link href="/d3-geomap/css/d3.geomap.css" rel="stylesheet">
+    <script src="/d3-geomap/vendor/d3.geomap.dependencies.min.js"></script>
+    <script src="/d3-geomap/js/d3.geomap.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
+
+    <!--Sidebar Css style-->
+    <link href="sidebar/bootstrap.min.css" rel="stylesheet">
+    <link href="sidebar/simple-sidebar.css" rel="stylesheet">
+</head>
+
+<body>
+    <!--Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">Moment</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!--Map Content-->
+    <div id="container" style="position: relative; width: 100%; min-height: 100vh;">
+
+        <div id="sidebar-wrapper">
+            <ul id="sidebar" class="sidebar-nav"></ul>
+        </div>
+        <div id="map">
+
+        </div>
+        <div id="map2">
+
+        </div>
+        <!-- <script>
+                function myfunction(ss) {
+                    console.log(ss.id);
+                    console.log(ss);
+                    var data = ss.id
+                    sendAjax('http://localhost:3000/ajax_send_email', data);
+
+                }
+                function sendAjax(url, data) {
+                    console.log(data)
+                    // 입력값을 변수에 담고 문자열 형태로 변환
+                    var data = { 'id': data };
+                    data = JSON.stringify(data);
+                    console.log(data);
+                    // content-type을 설정하고 데이터 송신
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', url);
+                    xhr.setRequestHeader('Content-type', "application/json");
+                    console.log(data)
+                    xhr.send(data);
+
+                    xhr.addEventListener('load', function () {
+                        console.log("이벤트리스너 실행")
+                        // 문자열 형식으로 변환
+                        var result = JSON.parse(xhr.responseText);
+                        console.log(result)
+                        // 데이터가 없으면 return 반환
+                        if (result.result !== 'ok') return;
+                        // 데이터가 있으면 결과값 표시
+                        document.querySelector(".card-text").innerHTML = result.contents;
+                        document.querySelector(".card-title").innerHTML = result.title;
+                        document.getElementsByClassName("view-ss")[0].style.display = "block";
+                    });
+                    // 데이터 수신이 완료되면 표시
+                }
+            </script> -->
+    </div>
+
+    <script src="map/mymap.js"></script>
+    <script>
+        var rs;
+        var width = 1400;
+        var height = 900;
+        var map = d3.geomap()
+            .geofile('d3-geomap/topojson/world/countries.json')
+            .draw(d3.select('#map'));
+
+        var map2 = d3.select("#map2")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        d3.json("skorea-municipalities-2018-geo.json", drawMaps)
+
+        function drawMaps(geojson) {
+            var center = d3.geo.centroid(geojson)
+            var offset = [width / 1.75, height / 2.55];
+            var projection = d3.geo.mercator()
+                .scale(7000)
+                .center(center)
+                .translate(offset);
+
+            var path = d3.geo.path().projection(projection);
+            map2.selectAll("path")
+                .data(geojson.features)
+                .enter()
+                .append("path")
+                .attr("d", path)
+                .attr("fill-opacity", 0.5)
+                .attr("fill", "green")
+                .attr("stroke", "#222");
+            var repaths = document.querySelectorAll("#map2 path");
+            for (i in repaths.length) {
+                repaths[i].attr("name", geojson.features[i].properties.name);
+            }
+        }
+        document.getElementById("map2").addEventListener('click', function (e) {
+            console.log(e.target.__data__.properties.name);
+            if (e.target.tagName != "path") return;
+            e.preventDefault();
+            var location = e.target.__data__.properties.name;
+
+            setTimeout(function () {
+                $("#container").toggleClass("toggled");
+                if ($(".toggled").length == 0) {
+                    document.getElementById("sidebar").innerHTML = "";
+                    return;
+                }
+                sendAjaxdb('http://localhost:3000/ajax_send_db', location);
+            }, 200)
+        });
+
+        function sendAjaxdb(url, subdata) {
+            var location = loMap.get(subdata)
+            var data = { "location": location };
+            data = JSON.stringify(data);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.setRequestHeader('Content-type', "application/json");
+            xhr.send(data);
+            xhr.addEventListener('load', function () {
+                console.log(xhr)
+                // 문자열 형식으로 변환
+                var result = JSON.parse(xhr.responseText);
+                // 데이터가 없으면 return 반환
+                console.log(result);
+                var name = subdata;
+                if (subdata == "서울특별시") {
+                    name = "대한민국"
+                }
+                console.log("확인1")
+                document.getElementById("sidebar").innerHTML = "";
+                var tamplate = `<li id="sidebar-brand" class="sidebar-brand">
+                    <h3 id="cName" style="color:orange;">${name}</h3>
+                </li>`
+                console.log("확인1")
+                document.getElementById("sidebar").insertAdjacentHTML("afterbegin", tamplate)
+                if (result.length == 0) return;
+                rs = {result : result, name:name}
+                var button = `<li id="sidebar-brand" class="sidebar-brand"><button onclick = "incibyn()">안전</button></li>`
+                document.getElementById("sidebar").insertAdjacentHTML("beforeend", button)
+                console.log("확인1")
+                for (var i = 0; i < result.length; i++) {
+                    var li = document.createElement("li");
+                    li.setAttribute("class", "sidebar-brand");
+                    li.setAttribute("id", "");
+                    li.innerHTML = "<a href= '' >" + result[i].title + "</a>";
+                    document.getElementById("sidebar").appendChild(li);
+                    console.log("확인1")
+                }
+            });
+
+        }
+
+        function incibyn() {
+            console.log(rs);
+                if (rs.result.length == 0) return;
+                document.getElementById("sidebar").innerHTML = "";
+                var tamplate = `<li id="sidebar-brand" class="sidebar-brand">
+                    <h3 id="cName" style="color:orange;">${rs.name}</h3>
+                </li>`
+                console.log("확인1")
+                document.getElementById("sidebar").insertAdjacentHTML("afterbegin", tamplate)
+
+                var button = `<li id="sidebar-brand" class="sidebar-brand"><button onclick = "total()">전체</button></li>`
+                document.getElementById("sidebar").insertAdjacentHTML("beforeend", button)
+                for (i = 0; i < rs.result.length; i++) {
+                    if (rs.result[i].incidents != null) {
+                    var li = document.createElement("li");
+                    li.setAttribute("class", "sidebar-brand");
+                    li.setAttribute("id", "");
+                    li.innerHTML = "<a href= '' >" + rs.result[i].title + "</a>";
+                    document.getElementById("sidebar").appendChild(li);
+                    console.log("확인1")
+                    }
+                }
+            }
+            function total(){
+                if (rs.result.length == 0) return;
+                document.getElementById("sidebar").innerHTML = "";
+                var tamplate = `<li id="sidebar-brand" class="sidebar-brand">
+                    <h3 id="cName" style="color:orange;">${rs.name}</h3>
+                </li>`
+                console.log("확인1")
+                document.getElementById("sidebar").insertAdjacentHTML("afterbegin", tamplate)
+
+                var button = `<li id="sidebar-brand" class="sidebar-brand"><button onclick = "incibyn()">안전</button></li>`
+                document.getElementById("sidebar").insertAdjacentHTML("beforeend", button)
+                for (i = 0; i < rs.result.length; i++) {
+                    var li = document.createElement("li");
+                    li.setAttribute("class", "sidebar-brand");
+                    li.setAttribute("id", "");
+                    li.innerHTML = "<a href= '' >" + rs.result[i].title + "</a>";
+                    document.getElementById("sidebar").appendChild(li);
+                    console.log("확인1")
+                    
+                }
+            }
+        document.getElementById("map").addEventListener('click', function (e) {
+            if (e.target.tagName != "path") return;
+
+            //사이드바 뜨게하기
+            e.preventDefault();
+            console.log(1);
+            var data = e.path[0].textContent;
+            var country = "";
+            country = myMap.get(data);
+            var countrycode = { "code": data, "country": country };
+            if (country == "kr") {
+                $("#container").removeClass("toggled");
+                $("#map").fadeOut(700);
+                $("#map2").css("visibility", "visible")
+                return;
+            }
+
+            setTimeout(function () {
+                $("#container").toggleClass("toggled");
+                if ($(".toggled").length == 0) {
+                    document.getElementById("sidebar").innerHTML = "";
+                    return;
+                }
+                sendAjaxApi('http://localhost:3000/ajax_send_api', countrycode);
+            }, 1000)
+        });
+        function sendAjaxApi(url, perdata) {
+            // 입력값을 변수에 담고 문자열 형태로 변환
+            console.log("보넨" + perdata);
+            var data = { 'country': perdata.country };
+            data = JSON.stringify(data);
+            // content-type을 설정하고 데이터 송신
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.setRequestHeader('Content-type', "application/json");
+            xhr.send(data);
+
+            xhr.addEventListener('load', function () {
+                console.log(xhr)
+                // 문자열 형식으로 변환
+                var result = JSON.parse(xhr.responseText);
+                // 데이터가 없으면 return 반환
+                console.log(result);
+                if (result.status !== 'ok') return;
+
+                var tamplate = `<li id="sidebar-brand" class="sidebar-brand">
+                    <h3 id="cName" style="color:orange;">${perdata.code}</h3>
+                </li>`
+                document.getElementById("sidebar").insertAdjacentHTML("afterbegin", tamplate);
+                for (var i = 0; i < result.articles.length; i++) {
+                    var li = document.createElement("li");
+                    li.setAttribute("class", "sidebar-brand");
+                    li.setAttribute("id", "sidebar-brand");
+                    li.innerHTML = "<a href=" + result.articles[i].url + ">" + result.articles[i].title + "</a>";
+                    document.getElementById("sidebar").appendChild(li);
+                }
+            });
+            // 데이터 수신이 완료되면 표시
+        }
+    </script> <!-- Sidebar Bootstrap core JavaScript -->
+    <script src="sidebar/jquery.min.js"></script>
+    <script src="sidebar/bootstrap.bundle.min.js"></script>
+
+    <!-- Map Bootstrap core JavaScript -->
+    <script src="map/d3.min.js"></script>
+    <script src="map/topojson.min.js"></script>
+    <script src="map/datamaps.js"></script>
+
+</body>
+
+</html>

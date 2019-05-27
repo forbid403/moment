@@ -1,0 +1,18 @@
+var loMap = new Map();
+console.log("loMap");
+loMap.set("서울특별시", "대한민국");
+loMap.set("부산광역시", "지역부산");
+loMap.set("광주광역시", "지역광주");
+loMap.set("대전관역시", "지역대전");
+loMap.set("인천광역시", "지역인천");
+loMap.set("울산광역시", "지역울산");
+loMap.set("경기도", "지역경기");
+loMap.set("축청북도", "지역충북");
+loMap.set("충청남도", "지역충남");
+loMap.set("강원도", "지역강원");
+loMap.set("전라남도", "지역전남");
+loMap.set("전라북도", "지역전북");
+loMap.set("경상북도", "지역경북");
+loMap.set("경상남도", "지역경남");
+loMap.set("제주도", "지역제주");
+loMap.set("대구광역시", "지역대구");
