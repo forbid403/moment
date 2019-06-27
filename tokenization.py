@@ -1,0 +1,49 @@
+import db_Process
+import MeCab
+import re
+from collections import Counter
+
+subjects = db_Process.loadArticles()
+vocab = Counter()
+
+def spacing_Subjects():
+    mecab = MeCab.Tagger('-Owakati')
+    result = []
+    for item in subjects:
+        result.append(mecab.parse(item))
+    return result
+
+def tokenizing_Subject():
+    subjects = spacing_Subjects()
+    mecab = MeCab.Tagger('-d /usr/local/lib/mecab/dic/ipadic')
+    mecab.parse('')
+    for i in subjects:
+        parse = mecab.parse(i)
+        lines = parse.split('\n')
+        items = (re.split('[\t,]', line) for line in lines)
+        find_Nouns(items)
+
+    vocab_sorted = sorted(vocab.items(), key=lambda x: x[1], reverse=True)
+    wordsToIndex(vocab_sorted)
+
+def find_Nouns(items):
+    for item in items:
+        if (item[0] not in ('EOS', '', 't', 'ー') and
+                             item[1] == '名詞' and item[2] == '一般'):
+            vocab[item[0]] = vocab[item[0]] + 1
+
+def wordsToIndex(vocab_sorted):
+    word_to_index = {}
+    i = 0
+    for (word, frequency) in vocab_sorted:
+        if frequency > 1:  # 정제(Cleaning) 챕터에서 언급했듯이 빈도수가 적은 단어는 제외한다.
+            i = i + 1
+            word_to_index[word] = i
+    print(word_to_index)
+
+tokenizing_Subject()
+
+# def counting_Words(words):
+#     counter = Counter(words)
+#     for word, count in counter.most_common():
+#         print(f"{word}: {count}")
