@@ -2,6 +2,7 @@ import db_Process
 import MeCab
 import re
 from collections import Counter
+from itertools import chain
 
 subjects = db_Process.loadArticles()
 vocab = Counter()
@@ -28,7 +29,7 @@ def tokenizing_Subject():
 
 def find_Nouns(items):
     for item in items:
-        if (item[0] not in ('EOS', '', 't', 'ー') and
+        if (item[0] not in ('EOS', '', 't', 'ー', stop_words) and
                              item[1] == '名詞' and item[2] == '一般'):
             vocab[item[0]] = vocab[item[0]] + 1
 
@@ -41,9 +42,17 @@ def wordsToIndex(vocab_sorted):
             word_to_index[word] = i
     print(word_to_index)
 
-tokenizing_Subject()
-
 # def counting_Words(words):
 #     counter = Counter(words)
 #     for word, count in counter.most_common():
 #         print(f"{word}: {count}")
+
+path = "stop_words.txt"
+stop_words = db_Process.create_stopwords(path)
+
+tokenizing_Subject()
+
+complete_kangi_range = range(0x4E00, 0x9FBF)
+complete_jpn_range = range(0x3040, 0x31FF)
+for i in chain(complete_jpn_range, complete_kangi_range):
+    print(chr(i))
